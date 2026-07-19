@@ -2,11 +2,24 @@
 
 Download the Tor exit node list from the [Onionoo API](https://metrics.torproject.org/onionoo.html) and check whether an IP address belongs to a Tor exit node.
 
-Every part of the package works on its own: download without saving, save without downloading, load without checking, check without any network or filesystem access.
+## Features
+
+Main features:
+- **Downloader** — retrieves the exit node list from the Onionoo API, in memory, with no filesystem involved.
+- **Filesystem writer** — saves a downloaded (or hand-built) list to a local JSON file.
+- **Filesystem reader** — loads a previously saved list back from that file.
+- **Checker** — answers whether an IP address is a known exit node, with no network or filesystem access.
+
+Code quality features:
+- **Modular by design** — each piece above works standalone; use any of them without the others.
+- **IPv4 and IPv6 support** — addresses are compared in canonical form, so notation differences don't cause false negatives.
+- **Typed exceptions** — every failure mode has a dedicated exception, all catchable through one common interface.
+- **Swappable HTTP client** — ships with a Guzzle implementation, but the transport is an interface you can replace.
 
 ## Requirements
 
 - PHP 8.2 or newer
+- Composer
 
 ## Installation
 
