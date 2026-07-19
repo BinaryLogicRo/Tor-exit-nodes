@@ -156,6 +156,86 @@ try {
 }
 ```
 
+## Examples
+
+### Keep a local cache fresh without downloading on every request
+
+```php
+use Binarylogic\TorExitNodes\Downloader\ExitNodeDownloader;
+use Binarylogic\TorExitNodes\Http\GuzzleHttpClient;
+use Binarylogic\TorExitNodes\Storage\ExitNodeFileReader;
+use Binarylogic\TorExitNodes\Storage\ExitNodeFileWriter;
+
+$path = __DIR__.'/storage/tor-exit-nodes.json';
+$maxAgeInSeconds = 3600;
+
+$isStale = ! is_file($path) || filemtime($path) < time() - $maxAgeInSeconds;
+
+if ($isStale) {
+    $exitNodes = (new ExitNodeDownloader(new GuzzleHttpClient()))->downloadExitNodes();
+
+    (new ExitNodeFileWriter($path))->saveExitNodes($exitNodes);
+} else {
+    $exitNodes = (new ExitNodeFileReader($path))->loadExitNodes();
+}
+```
+
+### Keep serving the last good list if a refresh fails
+
+```php
+use Binarylogic\TorExitNodes\Downloader\ExitNodeDownloader;
+use Binarylogic\TorExitNodes\Exception\DownloadFailedException;
+use Binarylogic\TorExitNodes\Exception\MalformedExitNodeListException;
+use Binarylogic\TorExitNodes\Http\GuzzleHttpClient;
+use Binarylogic\TorExitNodes\Storage\ExitNodeFileReader;
+use Binarylogic\TorExitNodes\Storage\ExitNodeFileWriter;
+
+$path = __DIR__.'/storage/tor-exit-nodes.json';
+
+try {
+    $exitNodes = (new ExitNodeDownloader(new GuzzleHttpClient()))->downloadExitNodes();
+
+    (new ExitNodeFileWriter($path))->saveExitNodes($exitNodes);
+} catch (DownloadFailedException|MalformedExitNodeListException) {
+    // Onionoo is unreachable or returned something unexpected; keep using the last saved list.
+    $exitNodes = (new ExitNodeFileReader($path))->loadExitNodes();
+}
+```
+
+### Reject requests coming from a Tor exit node
+
+```php
+use Binarylogic\TorExitNodes\Checker\ExitNodeChecker;
+use Binarylogic\TorExitNodes\Storage\ExitNodeFileReader;
+
+$reader = new ExitNodeFileReader(__DIR__.'/storage/tor-exit-nodes.json');
+$checker = new ExitNodeChecker($reader->loadExitNodes());
+
+if ($checker->isExitNode($_SERVER['REMOTE_ADDR'])) {
+    http_response_code(403);
+    exit;
+}
+```
+
+### Check a batch of IP addresses, for example when filtering log entries
+
+```php
+use Binarylogic\TorExitNodes\Checker\ExitNodeChecker;
+use Binarylogic\TorExitNodes\Exception\InvalidIpAddressException;
+
+$checker = new ExitNodeChecker($exitNodes);
+
+$ipAddressesFromLogFile = ['185.220.101.1', '8.8.8.8', '2001:db8::1', 'not-an-ip'];
+
+$torIpAddresses = array_filter($ipAddressesFromLogFile, function (string $ipAddress) use ($checker): bool {
+    try {
+        return $checker->isExitNode($ipAddress);
+    } catch (InvalidIpAddressException) {
+        return false;
+    }
+});
+```
+
 ## License
 
 MIT
