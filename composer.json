@@ -4,6 +4,7 @@
     "type": "library",
     "require": {
         "php": "^8.2",
+        "ext-json": "*",
         "guzzlehttp/guzzle": "^7.15",
         "symfony/filesystem": "^7.1"
     },
