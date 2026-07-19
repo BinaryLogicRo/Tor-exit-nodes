@@ -6,4 +6,14 @@
 AGENTS.md
 CLAUDE.md
 
+# Composer
 /vendor/
+
+# Folders
+/docs/
+
+# PHP CS Fixer
+.php-cs-fixer.cache
+
+# PHPUnit
+.phpunit.cache
