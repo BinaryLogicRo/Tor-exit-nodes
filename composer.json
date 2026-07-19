@@ -2,6 +2,13 @@
     "name": "binarylogic/tor-exit-nodes",
     "description": "Download the Tor exit nodes list and check if a given IP address is a Tor exit node.",
     "type": "library",
+    "authors": [
+        {
+            "name": "Binary Logic",
+            "email": "contact@binarylogic.ro",
+            "homepage": "https://binarylogic.ro/"
+        }
+    ],
     "require": {
         "php": "^8.2",
         "ext-json": "*",
