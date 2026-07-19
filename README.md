@@ -1,6 +1,6 @@
 # Tor Exit Nodes
 
-Download the Tor exit node list from the [Onionoo API](https://metrics.torproject.org/onionoo.html) and check whether an IP address belongs to a Tor exit node.
+This package provides a simple way to download the Tor exit node list from the [Onionoo API](https://metrics.torproject.org/onionoo.html) and check whether an IP address belongs to a Tor exit node. See the [examples](#examples) section for usage.
 
 ## Features
 
