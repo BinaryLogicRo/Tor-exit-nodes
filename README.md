@@ -31,6 +31,8 @@ composer require binarylogic/tor-exit-nodes
 
 ### Keep a local cache fresh without downloading on every request
 
+The file's modification time is the only bookkeeping involved — no cache driver, no scheduled job, no extra metadata to keep in sync. Saving goes through an atomic write, so a request that reads the file while another one refreshes it still sees a complete list.
+
 ```php
 use Binarylogic\TorExitNodes\Downloader\ExitNodeDownloader;
 use Binarylogic\TorExitNodes\Http\GuzzleHttpClient;
@@ -52,6 +54,8 @@ if ($isStale) {
 ```
 
 ### Keep serving the last good list if a refresh fails
+
+Catching both exceptions covers an unreachable Onionoo and a response that arrived but made no sense, and the saved file is only ever replaced once a payload has parsed cleanly. Note that the fallback needs a file to fall back to: on a first run with nothing saved yet, the reader throws `LoadFailedException`.
 
 ```php
 use Binarylogic\TorExitNodes\Downloader\ExitNodeDownloader;
@@ -75,6 +79,8 @@ try {
 
 ### Reject requests coming from a Tor exit node
 
+Drop this in a front controller or middleware. Behind a proxy or load balancer, `REMOTE_ADDR` is the proxy's address rather than the visitor's, so read the client address from your framework's trusted-proxy handling instead. Each request pays one file read here; in a long-lived process, load the list once and reuse the checker.
+
 ```php
 use Binarylogic\TorExitNodes\Checker\ExitNodeChecker;
 use Binarylogic\TorExitNodes\Storage\ExitNodeFileReader;
@@ -88,7 +94,9 @@ if ($checker->isExitNode($_SERVER['REMOTE_ADDR'])) {
 }
 ```
 
-### Check a batch of IP addresses, for example when filtering log entries
+### Check many IP addresses at once
+
+Useful for sifting Tor traffic out of log entries, an export, or a report. Lookups hit an in-memory hash map, so the size of the list barely affects the cost of a pass. Unparseable entries are treated as non-Tor here; rethrow instead if malformed input is something you would rather hear about.
 
 ```php
 use Binarylogic\TorExitNodes\Checker\ExitNodeChecker;
