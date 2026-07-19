@@ -1,0 +1,9 @@
+# VSCode
+.vscode
+.github
+
+# AI agents
+AGENTS.md
+CLAUDE.md
+
+/vendor/
